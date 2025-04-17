@@ -1,0 +1,1 @@
+D:\Codigo\Proyectos\cursos\curso-flutter-ai\gemini-app\build\app\intermediates\cxx\Debug\105o314d\obj\arm64-v8a
