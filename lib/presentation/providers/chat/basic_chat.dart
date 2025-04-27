@@ -2,6 +2,7 @@ import 'package:flutter_chat_types/flutter_chat_types.dart';
 import 'package:gemini_app/config/gemini/gemini_impl.dart';
 import 'package:gemini_app/presentation/providers/chat/is_gemini_writing.dart';
 import 'package:gemini_app/presentation/providers/users/user_provider.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:uuid/uuid.dart';
 
@@ -20,17 +21,33 @@ class BasicChat extends _$BasicChat {
     return [];
   }
 
-  void addMessage({
-    required PartialText partialText,
-    required User user,
-  }) {
-    // TODO: agregar condición cuando vengan imágenes
+  void addMessage(
+      {required PartialText partialText,
+      required User user,
+      List<XFile> images = const []}) {
+    if (images.isNotEmpty) {
+      _addTextMessageWithImages(partialText, user, images);
+      return;
+    }
+
     _addTextMessage(partialText, user);
   }
 
   void _addTextMessage(PartialText partialText, User author) {
     _createTextMessage(partialText.text, author);
     _geminiTextResponseStream(partialText.text);
+  }
+
+  void _addTextMessageWithImages(
+      PartialText partialText, User author, List<XFile> images) async {
+    for (XFile image in images) {
+      _createImageMessage(image, author);
+    }
+
+    await Future.delayed(const Duration(milliseconds: 10));
+
+    _createTextMessage(partialText.text, author);
+    // _geminiTextResponseStream(partialText.text);
   }
 
   void _geminiTextResponse(String prompt) async {
@@ -71,6 +88,18 @@ class BasicChat extends _$BasicChat {
         author: author,
         id: uuid.v4(),
         text: text,
+        createdAt: DateTime.now().microsecondsSinceEpoch);
+
+    state = [message, ...state];
+  }
+
+  Future<void> _createImageMessage(XFile image, User author) async {
+    final message = ImageMessage(
+        id: uuid.v4(),
+        author: author,
+        uri: image.path,
+        name: image.name,
+        size: await image.length(),
         createdAt: DateTime.now().microsecondsSinceEpoch);
 
     state = [message, ...state];
