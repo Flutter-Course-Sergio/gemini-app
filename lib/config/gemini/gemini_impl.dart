@@ -21,34 +21,54 @@ class GeminiImpl {
 
   Stream<String> getResponseStream(String message,
       {List<XFile> files = const []}) async* {
-    try {
-      final formData = FormData();
+    yield* _getStreamResponse(
+      endoint: '/basic-prompt-stream',
+      prompt: message,
+      files: files,
+    );
+  }
 
-      formData.fields.add(MapEntry('prompt', message));
+  Stream<String> getChatStream(String message, String chatId,
+      {List<XFile> files = const []}) async* {
+    yield* _getStreamResponse(
+        endoint: '/chat-stream',
+        prompt: message,
+        files: files,
+        formFields: {'chatId': chatId});
+  }
 
-      if (files.isNotEmpty) {
-        for (final file in files) {
-          formData.files.add(MapEntry('files',
-              await MultipartFile.fromFile(file.path, filename: file.name)));
-        }
+  // Emitit el stream de información
+  Stream<String> _getStreamResponse(
+      {required String endoint,
+      required String prompt,
+      List<XFile> files = const [],
+      Map<String, dynamic> formFields = const {}}) async* {
+    final formData = FormData();
+    formData.fields.add(MapEntry('prompt', prompt));
+
+    for (final entry in formFields.entries) {
+      formData.fields.add(MapEntry(entry.key, entry.value));
+    }
+
+    if (files.isNotEmpty) {
+      for (final file in files) {
+        formData.files.add(MapEntry('files',
+            await MultipartFile.fromFile(file.path, filename: file.name)));
       }
+    }
 
-      final response = await _http.post('/basic-prompt-stream',
-          data: formData, options: Options(responseType: ResponseType.stream));
+    final response = await _http.post(endoint,
+        data: formData, options: Options(responseType: ResponseType.stream));
 
-      final stream = response.data.stream as Stream<List<int>>;
+    final stream = response.data.stream as Stream<List<int>>;
 
-      String buffer = '';
+    String buffer = '';
 
-      await for (final chunk in stream) {
-        final chunkString = utf8.decode(chunk, allowMalformed: true);
-        buffer += chunkString;
+    await for (final chunk in stream) {
+      final chunkString = utf8.decode(chunk, allowMalformed: true);
+      buffer += chunkString;
 
-        yield buffer;
-      }
-    } catch (e) {
-      print(e);
-      throw Exception("Can't get Gemini response");
+      yield buffer;
     }
   }
 }

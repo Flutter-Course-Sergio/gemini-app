@@ -6,7 +6,6 @@ import 'package:gemini_app/presentation/providers/chat/basic_chat.dart';
 import 'package:gemini_app/presentation/providers/chat/is_gemini_writing.dart';
 import 'package:gemini_app/presentation/providers/users/user_provider.dart';
 import 'package:gemini_app/presentation/widgets/chat/custom_bottom_input.dart';
-import 'package:image_picker/image_picker.dart';
 
 class BasicPromptScreen extends ConsumerWidget {
   const BasicPromptScreen({super.key});

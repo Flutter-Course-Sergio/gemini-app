@@ -1,23 +1,25 @@
 import 'package:flutter_chat_types/flutter_chat_types.dart';
 import 'package:gemini_app/config/gemini/gemini_impl.dart';
-import 'package:gemini_app/presentation/providers/chat/is_gemini_writing.dart';
 import 'package:gemini_app/presentation/providers/users/user_provider.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:uuid/uuid.dart';
 
-part 'basic_chat.g.dart';
+part 'chat_with_context.g.dart';
 
 const uuid = Uuid();
 
-@riverpod
-class BasicChat extends _$BasicChat {
+@Riverpod(keepAlive: true)
+class ChatWithContext extends _$ChatWithContext {
   final gemini = GeminiImpl();
   late User geminiUser;
+
+  late String chatId;
 
   @override
   List<Message> build() {
     geminiUser = ref.read(geminiUserProvider);
+    chatId = uuid.v4();
     return [];
   }
 
@@ -54,7 +56,7 @@ class BasicChat extends _$BasicChat {
       {List<XFile> files = const []}) async {
     _createTextMessage('Gemini está pensando...', geminiUser);
 
-    gemini.getResponseStream(prompt, files: files).listen((responseChunk) {
+    gemini.getChatStream(prompt, chatId, files: files).listen((responseChunk) {
       if (responseChunk.isEmpty) return;
 
       final updatedMessages = [...state];
@@ -67,7 +69,6 @@ class BasicChat extends _$BasicChat {
   }
 
 // Helper methods
-
   void _createTextMessage(String text, User author) {
     final message = TextMessage(
         author: author,
@@ -88,5 +89,10 @@ class BasicChat extends _$BasicChat {
         createdAt: DateTime.now().microsecondsSinceEpoch);
 
     state = [message, ...state];
+  }
+
+  void newChat() {
+    chatId = uuid.v4();
+    state = [];
   }
 }

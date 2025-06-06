@@ -20,6 +20,15 @@ class HomeScreen extends StatelessWidget {
               title: const Text('Prompt básico de Gemini'),
               subtitle: const Text('Usando un modelo flash'),
               onTap: () => context.push('/basic-prompt'),
+            ),
+            ListTile(
+              leading: const CircleAvatar(
+                backgroundColor: Colors.pink,
+                child: Icon(Icons.history_outlined),
+              ),
+              title: const Text('Contexto conversacional'),
+              subtitle: const Text('Mantener el contexto de mensajes'),
+              onTap: () => context.push('/history-chat'),
             )
           ],
         ));
