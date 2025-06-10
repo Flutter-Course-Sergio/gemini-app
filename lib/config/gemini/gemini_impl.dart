@@ -84,7 +84,11 @@ class GeminiImpl {
 
     try {
       final response = await _http.post('/image-generation', data: formData);
-      return response.data['imageUrl'];
+      final imageUrl = response.data['imageUrl'];
+
+      if (imageUrl == '') return null;
+
+      return imageUrl;
     } catch (e) {
       print(e);
       throw Exception("Can't get Gemini response");

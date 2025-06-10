@@ -7,7 +7,7 @@ import 'package:gemini_app/presentation/providers/image/is_generating_provider.d
 
 part 'generated_images_provider.g.dart';
 
-@riverpod
+@Riverpod(keepAlive: true)
 class GeneratedImages extends _$GeneratedImages {
   final GeminiImpl gemini = GeminiImpl();
 
@@ -26,6 +26,7 @@ class GeneratedImages extends _$GeneratedImages {
   }
 
   void addImage(String imageUrl) {
+    if (imageUrl == '') return;
     generatedHistoryNotifier.addImage(imageUrl);
     state = [...state, imageUrl];
   }

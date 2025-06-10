@@ -5,6 +5,7 @@ import 'package:gemini_app/presentation/providers/image/generated_images_provide
 import 'package:gemini_app/presentation/providers/image/is_generating_provider.dart';
 import 'package:gemini_app/presentation/providers/image/selected_art_provider.dart';
 import 'package:gemini_app/presentation/widgets/chat/custom_bottom_input.dart';
+import 'package:gemini_app/presentation/widgets/images/history_grid.dart';
 import 'package:image_picker/image_picker.dart';
 
 const imageArtStyles = [
@@ -35,7 +36,11 @@ class ImagePlaygroundScreen extends ConsumerWidget {
           // Selector de estilo de arte
           const ArtStyleSelector(),
           // Llenar el espacio
-          Expanded(child: Container()),
+          const Expanded(
+              child: Padding(
+            padding: EdgeInsets.all(8.0),
+            child: HistoryGrid(),
+          )),
           // Espacio para el prompt
           CustomBottomInput(
             onSend: (partialText, {List<XFile> images = const []}) {
