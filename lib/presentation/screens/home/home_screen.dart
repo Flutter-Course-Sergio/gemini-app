@@ -23,12 +23,21 @@ class HomeScreen extends StatelessWidget {
             ),
             ListTile(
               leading: const CircleAvatar(
-                backgroundColor: Colors.pink,
+                backgroundColor: Colors.deepPurple,
                 child: Icon(Icons.history_outlined),
               ),
               title: const Text('Contexto conversacional'),
               subtitle: const Text('Mantener el contexto de mensajes'),
               onTap: () => context.push('/history-chat'),
+            ),
+            ListTile(
+              leading: const CircleAvatar(
+                backgroundColor: Colors.blueAccent,
+                child: Icon(Icons.image_outlined),
+              ),
+              title: const Text('Generación de imágenes'),
+              subtitle: const Text('Crea y edita impagenes con AI'),
+              onTap: () => context.push('/image-playground'),
             )
           ],
         ));
