@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gemini_app/config/theme/app_theme.dart';
+import 'package:gemini_app/presentation/providers/image/generated_images_provider.dart';
+import 'package:gemini_app/presentation/providers/image/is_generating_provider.dart';
 import 'package:gemini_app/presentation/widgets/chat/custom_bottom_input.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -15,11 +18,11 @@ const imageArtStyles = [
   'Estilo Manga',
 ];
 
-class ImagePlaygroundScreen extends StatelessWidget {
+class ImagePlaygroundScreen extends ConsumerWidget {
   const ImagePlaygroundScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, ref) {
     return Scaffold(
       appBar: AppBar(title: const Text('Imágenes con Gemini')),
       backgroundColor: seedColor,
@@ -34,8 +37,15 @@ class ImagePlaygroundScreen extends StatelessWidget {
           Expanded(child: Container()),
           // Espacio para el prompt
           CustomBottomInput(
-            onSend: (p0, {List<XFile> images = const []}) {
-              // Todo:
+            onSend: (partialText, {List<XFile> images = const []}) {
+              final generatedImagesNotifier =
+                  ref.read(generatedImagesProvider.notifier);
+
+              generatedImagesNotifier.clearImages();
+
+              String prompt = partialText.text;
+
+              generatedImagesNotifier.generateImage(prompt, images: images);
             },
           ),
         ],
@@ -44,11 +54,14 @@ class ImagePlaygroundScreen extends StatelessWidget {
   }
 }
 
-class GeneratedImageGallery extends StatelessWidget {
+class GeneratedImageGallery extends ConsumerWidget {
   const GeneratedImageGallery({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final generatedImages = ref.watch(generatedImagesProvider);
+    final isGenerating = ref.watch(isGeneratingProvider);
+
     return SizedBox(
       height: 250,
       child: PageView(
@@ -56,21 +69,27 @@ class GeneratedImageGallery extends StatelessWidget {
           viewportFraction: 0.6, // Muestra 1.5 imágenes en la pantalla
           initialPage: 0,
         ),
+        onPageChanged: (index) {
+          if (index == generatedImages.length - 1) {
+            ref
+                .read(generatedImagesProvider.notifier)
+                .generateImageWithPreviousPrompt();
+          }
+        },
         padEnds: true, // Cambiado a true para centrar la primera imagen
-        children: const [
+        children: [
           //* Placeholder hasta que se genere al menos una imagen
-          EmptyPlaceholderImage(),
-          GeneratingPlaceholderImage(),
+          if (generatedImages.isEmpty && !isGenerating)
+            const EmptyPlaceholderImage(),
 
           //* Aquí iremos colocando las imágenes generadas
-          GeneratedImage(
-            imageUrl:
-                'https://www.theclickcommunity.com/blog/wp-content/uploads/2018/04/woman-with-red-hair-outside-by-Cassandra-Casley.jpg',
+          ...generatedImages.map(
+            (imageUrl) => GeneratedImage(
+              imageUrl: imageUrl,
+            ),
           ),
-          GeneratedImage(
-            imageUrl:
-                'https://www.theclickcommunity.com/blog/wp-content/uploads/2018/04/woman-with-red-hair-outside-by-Cassandra-Casley.jpg',
-          ),
+
+          if (isGenerating) const GeneratingPlaceholderImage(),
         ],
       ),
     );
