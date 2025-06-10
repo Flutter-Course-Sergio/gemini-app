@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gemini_app/config/theme/app_theme.dart';
 import 'package:gemini_app/presentation/providers/image/generated_images_provider.dart';
 import 'package:gemini_app/presentation/providers/image/is_generating_provider.dart';
+import 'package:gemini_app/presentation/providers/image/selected_art_provider.dart';
 import 'package:gemini_app/presentation/widgets/chat/custom_bottom_input.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -41,11 +42,18 @@ class ImagePlaygroundScreen extends ConsumerWidget {
               final generatedImagesNotifier =
                   ref.read(generatedImagesProvider.notifier);
 
+              final selectedStyle = ref.read(selectedArtStyleProvider);
+              String promptWithStyle = partialText.text;
+
               generatedImagesNotifier.clearImages();
 
-              String prompt = partialText.text;
+              if (selectedStyle.isNotEmpty) {
+                promptWithStyle =
+                    '${partialText.text} con el estilo de $selectedStyle';
+              }
 
-              generatedImagesNotifier.generateImage(prompt, images: images);
+              generatedImagesNotifier.generateImage(promptWithStyle,
+                  images: images);
             },
           ),
         ],
@@ -127,11 +135,13 @@ class GeneratedImage extends StatelessWidget {
   }
 }
 
-class ArtStyleSelector extends StatelessWidget {
+class ArtStyleSelector extends ConsumerWidget {
   const ArtStyleSelector({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, ref) {
+    final selectedArt = ref.watch(selectedArtStyleProvider);
+
     return SizedBox(
       height: 50,
       child: ListView.builder(
@@ -139,11 +149,20 @@ class ArtStyleSelector extends StatelessWidget {
         itemCount: imageArtStyles.length,
         itemBuilder: (context, index) {
           final style = imageArtStyles[index];
-          return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 4.0),
-            child: Chip(
-              label: Text(style),
-              backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+          final activeStyle = selectedArt == style
+              ? Theme.of(context).colorScheme.primaryContainer
+              : null;
+
+          return GestureDetector(
+            onTap: () {
+              ref.read(selectedArtStyleProvider.notifier).setSelectedArt(style);
+            },
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4.0),
+              child: Chip(
+                label: Text(style),
+                backgroundColor: activeStyle,
+              ),
             ),
           );
         },
